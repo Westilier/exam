@@ -23,28 +23,25 @@ jobs:
           yc-sa-json-credentials: ${{ secrets.YC_SA_KEY }}
 
       - name: Build and Push Docker Image
-        run: |
+        run:
           TAG=${GITHUB_SHA::7}
           docker build -t cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG} .
           docker push cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG}
 
-      - name: Setup Yandex Cloud CLI
-        uses: yandex-cloud/yc-actions-setup@v1
-        with:
-          yc-sa-json-credentials: ${{ secrets.YC_SA_KEY }}
-
-
-      - name: Configure Kubectl and Deploy
-        run: |
+      - name: Install Yandex CLI, Configure Kubectl and Deploy
+        run:
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -a
+          
           export PATH="$HOME/yandex-cloud/bin:$PATH"
-
+          
           echo '${{ secrets.YC_SA_KEY }}' > sa_key.json
-          ./yc config profile create sa-profile || true
-          ./yc config set service-account-key sa_key.json
+          yc config profile create sa-profile || true
+          yc config set service-account-key sa_key.json
           
-          ./yc managed-kubernetes cluster get-credentials ${{ env.CLUSTER_ID }} --external
-          
+
+          yc managed-kubernetes cluster get-credentials ${{ env.CLUSTER_ID }} --external
+
           TAG=${GITHUB_SHA::7}
-          kubectl set image deployment/web-app web-app=cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG}
-          
+          kubectl set image deployment/web-app app=cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG}
+
           kubectl rollout status deployment/web-app
