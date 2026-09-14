@@ -23,13 +23,13 @@ jobs:
           yc-sa-json-credentials: ${{ secrets.YC_SA_KEY }}
 
       - name: Build and Push Docker Image
-        run:
+        run: |
           TAG=${GITHUB_SHA::7}
           docker build -t cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG} .
           docker push cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG}
 
       - name: Install Yandex CLI, Configure Kubectl and Deploy
-        run:
+        run: |
           curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -a
           
           export PATH="$HOME/yandex-cloud/bin:$PATH"
