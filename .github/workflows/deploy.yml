@@ -35,11 +35,13 @@ jobs:
 
       - name: Configure Kubectl and Deploy
         run: |
-          echo '${{ secrets.YC_SA_KEY }}' > sa_key.json
-          yc config profile create sa-profile || true
-          yc config set service-account-key sa_key.json
+          export PATH="$HOME/yandex-cloud/bin:$PATH"
           
-          yc managed-kubernetes cluster get-credentials ${{ env.CLUSTER_ID }} --external
+          echo '${{ secrets.YC_SA_KEY }}' > sa_key.json
+          ./yc config profile create sa-profile || true
+          ./yc config set service-account-key sa_key.json
+          
+          ./yc managed-kubernetes cluster get-credentials ${{ env.CLUSTER_ID }} --external
           
           TAG=${GITHUB_SHA::7}
           kubectl set image deployment/web-app web-app=cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG}
