@@ -28,15 +28,16 @@ jobs:
           docker build -t cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG} .
           docker push cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${TAG}
 
-      - name: Install yc CLI and Kubectl
-        run: |
-          curl -sSL https://yandexcloud.net | bash
-          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+      - name: Setup Yandex Cloud CLI
+        uses: yandex-cloud/yc-actions-setup@v1
+        with:
+          yc-sa-json-credentials: ${{ secrets.YC_SA_KEY }}
+
 
       - name: Configure Kubectl and Deploy
         run: |
           export PATH="$HOME/yandex-cloud/bin:$PATH"
-          
+
           echo '${{ secrets.YC_SA_KEY }}' > sa_key.json
           ./yc config profile create sa-profile || true
           ./yc config set service-account-key sa_key.json
